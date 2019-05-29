@@ -1,0 +1,182 @@
+Sub ticker()
+
+    'Defining variables
+    
+    Dim tick As String
+    Dim percent_change As Double
+    Dim total_stock_volume As Long
+    Dim rowindex As Long
+    Dim columnindex As Integer
+    Dim ticker_row As Integer
+    Dim ws As Worksheet
+    Dim LastRow As Long
+    Dim yearly_change As Double
+    Dim year_first As Double
+    Dim year_last As Double
+    Dim change_row As Integer
+    Dim first_vol_index As Long
+    Dim KLastRow As Long
+    Dim greatest_val As Double
+    Dim greatest_ticker As String
+    Dim least_val As Double
+    Dim least_ticker As String
+    Dim greatest_total_vol As Currency
+    Dim greatest_total_vol_ticker As String
+    
+        'Start loop over sheets here
+    
+        For Each ws In ThisWorkbook.Worksheets
+        WorksheetName = ws.Name
+        
+        'Setting intial variable values
+
+        greatest_val = 0
+        least_val = 0
+        greatest_total_vol = 0
+        
+            'Setting initial index values
+    
+            'Ticker index
+    
+            ticker_row = 2
+            
+            'Yearly/Percent change indexes
+    
+            change_row = 2
+            
+            first_vol_index = 2
+    
+            'Setting headers
+    
+            ws.Range("I1").Value = "Ticker"
+            ws.Range("J1").Value = "Yearly Change"
+            ws.Range("K1").Value = "% Change"
+            ws.Range("L1").Value = "Total Volume"
+            ws.Range("P1").Value = "Ticker"
+            ws.Range("Q1").Value = "Value"
+            ws.Range("O2").Value = "Greatest % Increase"
+            ws.Range("O3").Value = "Greatest % Decrease"
+            ws.Range("O4").Value = "Greatest Total Volume"
+    
+            'Formatting
+    
+            ws.Range("Q2").NumberFormat = "0.00%"
+            ws.Range("Q3").NumberFormat = "0.00%"
+ 
+            'Determining last row of sheet
+    
+            LastRow = ws.Cells(Rows.Count, 1).End(xlUp).Row
+            
+            'Determining last row of IJKL
+    
+            KLastRow = ws.Cells(Rows.Count, 11).End(xlUp).Row
+            
+                'Filling ticker
+        
+                For rowindex = 2 To LastRow
+                
+                    'Finding where ticker name changes
+            
+                    If ws.Cells(rowindex + 1, 1).Value <> ws.Cells(rowindex, 1).Value Then
+
+                        tick = ws.Cells(rowindex, 1).Value
+                    
+                        ws.Range("I" & ticker_row).Value = tick
+                    
+                        'Changing index before new ticker section in column I
+                    
+                        ticker_row = ticker_row + 1
+                    
+                        'Filling yearly change (Column J)
+                         
+                        year_last = ws.Cells(rowindex, 6).Value
+                        year_first = ws.Cells(first_vol_index, 3).Value
+                        
+                        'Calculating yearly_change
+    
+                        yearly_change = year_last - year_first
+                                              
+                        ws.Range("J" & change_row).Value = yearly_change
+                        
+                                    'Conditional formatting for yearly_change
+                
+                                    If ws.Range("J" & change_row).Value >= 0 Then
+        
+                                    ws.Range("J" & change_row).Interior.ColorIndex = 4
+            
+                                    Else
+            
+                                    ws.Range("J" & change_row).Interior.ColorIndex = 3
+                
+                                    End If
+                    
+                                'Filling percent change (Column K)
+                        
+                                If year_first <> 0 Then
+                        
+                                ws.Range("k" & change_row).Value = yearly_change / year_first
+                                ws.Range("k" & change_row).NumberFormat = "0.00%"
+                                
+                                    'Filling greatest percent increase (P2, Q2)
+                
+                                    If ws.Range("k" & change_row).Value > greatest_val Then
+                              
+                                    greatest_val = ws.Range("K" & change_row).Value
+                        
+                                    greatest_ticker = ws.Range("I" & change_row).Value
+                                
+                                    ws.Range("P2").Value = greatest_ticker
+                                    ws.Range("Q2").Value = greatest_val
+                                
+                                    End If
+                                    
+                                    'Filling greatest percent decrease (P3, Q3)
+                                    
+                                    If ws.Range("k" & change_row).Value < least_val Then
+                              
+                                    least_val = ws.Range("K" & change_row).Value
+                        
+                                    least_ticker = ws.Range("I" & change_row).Value
+                                    
+                                    ws.Range("P3").Value = least_ticker
+                                    ws.Range("Q3").Value = least_val
+                                    
+                                    End If
+                                    
+                                Else
+                        
+                                ws.Range("K" & change_row).Value = 0
+                                
+                                End If
+                             
+                        'Filling total stock volume (Column L)
+                    
+                        myRange = ws.Range("G" & first_vol_index, "G" & rowindex)
+                        TotalSum = WorksheetFunction.Sum(myRange)
+                        ws.Range("L" & change_row).Value = TotalSum
+                        
+                            'Filling greatest stock volume (P4, Q4)
+    
+                            If ws.Range("L" & change_row).Value > greatest_total_vol Then
+                              
+                            greatest_total_vol = ws.Range("L" & change_row)
+                        
+                            greatest_total_vol_ticker = ws.Range("I" & change_row).Value
+                        
+                            ws.Range("P4").Value = greatest_total_vol_ticker
+                            ws.Range("Q4").Value = greatest_total_vol
+                                                
+                            End If
+                        
+                        'Changing indexes for new ticker row
+                        
+                        change_row = change_row + 1
+                        first_vol_index = rowindex + 1
+                        
+                    End If
+ 
+            Next rowindex
+    
+        Next ws
+        
+End Sub
